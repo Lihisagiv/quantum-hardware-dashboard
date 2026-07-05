@@ -17,7 +17,8 @@ import pandas as pd
 # ─── Paths (all relative to this file — no machine-specific paths) ───────────
 
 BASE_DIR = Path(__file__).resolve().parent
-DATA_DIR = BASE_DIR / "data"
+# Support Excel files in a data/ subfolder OR directly in the same folder as this file
+DATA_DIR = BASE_DIR / "data" if (BASE_DIR / "data").is_dir() else BASE_DIR
 PENDING_DIR = BASE_DIR / "pending_review"
 PROCESSED_DIR = PENDING_DIR / "processed"
 UPLOAD_DIR = BASE_DIR / "uploaded_pdfs"
