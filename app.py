@@ -67,6 +67,16 @@ def parse_axis_label(text):
     return text, None
 
 
+def hex_to_rgba(hex_color, alpha=1.0):
+    """Convert a #RRGGBB hex string to an rgba() string safe for Plotly."""
+    try:
+        h = hex_color.lstrip('#')
+        r, g, b = int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
+        return f"rgba({r},{g},{b},{alpha})"
+    except Exception:
+        return f"rgba(100,100,100,{alpha})"
+
+
 def fit_ellipse_points(pts, n=60):
     """Return x,y boundary arrays of a covariance ellipse around pts (linear space)."""
     arr = np.array(pts)
@@ -499,24 +509,25 @@ def page_tradeoff(dm: DataManager):
     for p, pts in by_plat.items():
         if len(pts) < 2:
             continue
+        color = PLATFORM_COLORS.get(p, '#888888')
         xy = [(r['x'], r['y']) for r in pts]
         ex, ey, cx, cy = fit_ellipse_points(xy)
         fig.add_trace(go.Scatter(
             x=ex, y=ey, mode='lines', fill='toself',
-            fillcolor=PLATFORM_COLORS[p].replace(')', ', 0.13)').replace('rgb', 'rgba')
-                      if PLATFORM_COLORS[p].startswith('rgb') else PLATFORM_COLORS[p] + '22',
-            line=dict(color=PLATFORM_COLORS[p], width=1.4),
+            fillcolor=hex_to_rgba(color, 0.13),
+            line=dict(color=hex_to_rgba(color, 1.0), width=1.4),
             showlegend=False, hoverinfo='skip'))
-        fig.add_annotation(x=cx, y=cy, text=f"<b>{PLATFORM_SHORT[p]}</b>",
-                           showarrow=False, font=dict(color=PLATFORM_COLORS[p], size=11),
+        fig.add_annotation(x=cx, y=cy, text=f"<b>{PLATFORM_SHORT.get(p, p)}</b>",
+                           showarrow=False, font=dict(color=color, size=11),
                            yshift=25)
 
     for p, pts in by_plat.items():
+        color = PLATFORM_COLORS.get(p, '#888888')
         fig.add_trace(go.Scatter(
             x=[r['x'] for r in pts], y=[r['y'] for r in pts], mode='markers',
-            marker=dict(symbol=marker_symbol, color=PLATFORM_COLORS[p], size=13,
+            marker=dict(symbol=marker_symbol, color=hex_to_rgba(color, 1.0), size=13,
                        line=dict(color='black', width=1)),
-            name=PLATFORM_SHORT[p],
+            name=PLATFORM_SHORT.get(p, p),
             customdata=[r['paper'] for r in pts],
             hovertemplate="<b>%{customdata}</b><br>x=%{x:.4g}, y=%{y:.4g}<extra></extra>",
         ))
